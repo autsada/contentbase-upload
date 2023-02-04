@@ -1,0 +1,9 @@
+.ssl
+dist
+node_modules
+.dockerignore
+.env
+.env.prod
+.env.staging
+Dockerfile.dev
+test.js
