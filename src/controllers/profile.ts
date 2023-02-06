@@ -16,7 +16,6 @@ export async function avatarUpload({
 }) {
   try {
     const filename = file.filename
-    console.log("filename: ", file.filename)
     const inputFilePath = file.path
     const outputFilePath = `${osTempDir}/${filename}-${Date.now()}`
 
@@ -29,7 +28,6 @@ export async function avatarUpload({
     // Make sure to `lowerCase` the handle
     const destination = `${storageFolder}/${handle.toLowerCase()}-${filename}`
 
-    console.log("destination: ", destination)
     // Upload
     await bucket.upload(outputFilePath, {
       destination,
