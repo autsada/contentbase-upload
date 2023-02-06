@@ -15,7 +15,7 @@ export async function avatarUpload({
   storageFolder: string
 }) {
   try {
-    const filename = file.filename.split("-")[0]
+    const filename = file.filename
     console.log("filename: ", file.filename)
     const inputFilePath = file.path
     const outputFilePath = `${osTempDir}/${filename}-${Date.now()}`
