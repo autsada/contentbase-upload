@@ -7,7 +7,7 @@ const storage = multer.diskStorage({
     cb(null, osTempDir)
   },
   filename: (req, file, cb) => {
-    cb(null, `${file.originalname}-${Date.now()}`)
+    cb(null, `${Date.now()}-${file.originalname}`)
   },
 })
 export const uploadDisk = multer({ storage }).single("file")

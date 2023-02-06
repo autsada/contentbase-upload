@@ -1,7 +1,6 @@
 import { promisify } from "util"
 import fs from "fs"
 import sharp from "sharp"
-import { v4 } from "uuid"
 
 import { bucket } from "../firebase/config"
 import { osTempDir } from "../middlewares/multer"
@@ -28,8 +27,7 @@ export async function avatarUpload({
 
     // Construct destination string for the image to be saved on cloud storage
     // Make sure to `lowerCase` the handle
-    const uniqueId = v4().replace(/-/g, "")
-    const destination = `${storageFolder}/${handle.toLowerCase()}-${uniqueId}-${filename}`
+    const destination = `${storageFolder}/${handle.toLowerCase()}-${filename}`
 
     console.log("destination: ", destination)
     // Upload
