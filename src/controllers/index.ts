@@ -26,16 +26,17 @@ export function uploadAvatarWorker(
   next: NextFunction
 ) {
   const file = req.file
-  const { handle, storageFolder } = req.body as {
+  const { handle, storageFolder, oldURI } = req.body as {
     handle: string
     storageFolder: string
+    oldURI?: string
   }
   if (!file || !handle || !storageFolder) throw new Error("Bad request")
 
   pool
     .proxy()
     .then(function (worker) {
-      return worker.avatarUpload({ file, handle, storageFolder })
+      return worker.avatarUpload({ file, handle, storageFolder, oldURI })
     })
     .then(function (result) {
       res.status(200).json({ url: result })

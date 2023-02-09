@@ -9,10 +9,12 @@ export async function avatarUpload({
   file,
   handle,
   storageFolder,
+  oldURI,
 }: {
   file: Express.Multer.File
   handle: string
   storageFolder: string
+  oldURI?: string
 }) {
   try {
     const filename = file.filename
@@ -43,6 +45,15 @@ export async function avatarUpload({
     const unlink = promisify(fs.unlink)
     await unlink(inputFilePath)
     await unlink(outputFilePath)
+
+    // Delete the old file (if any)
+    if (oldURI) {
+      const bucketPath = "/content-base-b78d7.appspot.com/"
+      const url = new URL(oldURI).pathname // example result = '/content-base-b78d7.appspot.com/avatars/auddy-1675935309352-IMG_0834.jpeg'
+      const oldFilePath = url.replace(bucketPath, "")
+      // Delete the old file without waiting.
+      await bucket.file(oldFilePath).delete()
+    }
 
     // res.status(200).json({ url: urls[0] })
     return urls[0]
