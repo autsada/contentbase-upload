@@ -22,7 +22,7 @@ export async function avatarUpload({
     const outputFilePath = `${osTempDir}/${filename}-${Date.now()}`
 
     await sharp(inputFilePath)
-      .resize({ width: 640, height: 640, fit: "contain" })
+      .resize({ width: 640, height: 640, fit: "cover" })
       .withMetadata()
       .toFile(outputFilePath)
 
@@ -51,7 +51,6 @@ export async function avatarUpload({
       const bucketPath = "/content-base-b78d7.appspot.com/"
       const url = new URL(oldURI).pathname // example result = '/content-base-b78d7.appspot.com/avatars/auddy-1675935309352-IMG_0834.jpeg'
       const oldFilePath = url.replace(bucketPath, "")
-      console.log("old path: ", oldFilePath)
       // Delete the old file without waiting.
       // Need to wrap with try/catch to allow the process continues even the delete throws
       try {
