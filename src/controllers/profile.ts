@@ -51,11 +51,14 @@ export async function avatarUpload({
       const bucketPath = "/content-base-b78d7.appspot.com/"
       const url = new URL(oldURI).pathname // example result = '/content-base-b78d7.appspot.com/avatars/auddy-1675935309352-IMG_0834.jpeg'
       const oldFilePath = url.replace(bucketPath, "")
+      console.log("old path: ", oldFilePath)
       // Delete the old file without waiting.
-      await bucket.file(oldFilePath).delete()
+      // Need to wrap with try/catch to allow the process continues even the delete throws
+      try {
+        await bucket.file(oldFilePath).delete()
+      } catch (error) {}
     }
 
-    // res.status(200).json({ url: urls[0] })
     return urls[0]
   } catch (error) {
     throw error
