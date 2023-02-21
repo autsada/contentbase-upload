@@ -32,7 +32,7 @@ export function uploadAvatarWorker(
     uploadType: UploadType
     oldURI?: string
   }
-  if (!uid || !file || !handle || uploadType) throw new Error("Bad request")
+  if (!uid || !file || !handle || !uploadType) throw new Error("Bad request")
 
   pool
     .proxy()
