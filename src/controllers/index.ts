@@ -2,7 +2,7 @@ import workerpool from "workerpool"
 import path from "path"
 import type { Request, Response, NextFunction } from "express"
 
-import type { Environment } from "../types"
+import type { Environment, UploadType } from "../types"
 
 const { NODE_ENV } = process.env
 
@@ -26,17 +26,18 @@ export function uploadAvatarWorker(
   next: NextFunction
 ) {
   const file = req.file
-  const { handle, storageFolder, oldURI } = req.body as {
+  const { uid, handle, uploadType, oldURI } = req.body as {
+    uid: string
     handle: string
-    storageFolder: string
+    uploadType: UploadType
     oldURI?: string
   }
-  if (!file || !handle || !storageFolder) throw new Error("Bad request")
+  if (!uid || !file || !handle || uploadType) throw new Error("Bad request")
 
   pool
     .proxy()
     .then(function (worker) {
-      return worker.avatarUpload({ file, handle, storageFolder, oldURI })
+      return worker.avatarUpload({ uid, file, handle, uploadType, oldURI })
     })
     .then(function (result) {
       res.status(200).json({ url: result })

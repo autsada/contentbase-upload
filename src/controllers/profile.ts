@@ -4,16 +4,19 @@ import sharp from "sharp"
 
 import { bucket } from "../firebase/config"
 import { osTempDir } from "../middlewares/multer"
+import type { UploadType } from "../types"
 
 export async function avatarUpload({
+  uid,
   file,
   handle,
-  storageFolder,
+  uploadType,
   oldURI,
 }: {
+  uid: string
   file: Express.Multer.File
   handle: string
-  storageFolder: string
+  uploadType: UploadType
   oldURI?: string
 }) {
   try {
@@ -28,7 +31,7 @@ export async function avatarUpload({
 
     // Construct destination string for the image to be saved on cloud storage
     // Make sure to `lowerCase` the handle
-    const destination = `${storageFolder}/${handle.toLowerCase()}-${filename}`
+    const destination = `${uid}/${handle.toLowerCase()}/${uploadType}/${filename}`
 
     // Upload
     await bucket.upload(outputFilePath, {
@@ -49,13 +52,15 @@ export async function avatarUpload({
     // Delete the old file (if any)
     if (oldURI) {
       const bucketPath = "/content-base-b78d7.appspot.com/"
-      const url = new URL(oldURI).pathname // example result = '/content-base-b78d7.appspot.com/avatars/auddy-1675935309352-IMG_0834.jpeg'
+      const url = new URL(oldURI).pathname // example result = '/content-base-b78d7.appspot.com/eibpIeupn/auddy/avatars/1675935309352-IMG_0834.jpeg'
       const oldFilePath = url.replace(bucketPath, "")
       // Delete the old file without waiting.
       // Need to wrap with try/catch to allow the process continues even the delete throws
       try {
         await bucket.file(oldFilePath).delete()
-      } catch (error) {}
+      } catch (error) {
+        console.error(error)
+      }
     }
 
     return urls[0]
