@@ -6,7 +6,7 @@ import cors from "cors"
 import http from "http"
 import "sharp"
 
-import { profileRouter } from "./routes"
+import { router } from "./routes"
 
 const { PORT } = process.env
 
@@ -15,7 +15,8 @@ app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 app.use(cors())
 
-app.use("/profile", profileRouter)
+app.use("/", router)
+// app.use("/publish", publishRouter)
 
 // Create the HTTP server
 const httpServer = http.createServer(app)
