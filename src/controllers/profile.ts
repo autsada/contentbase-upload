@@ -123,7 +123,7 @@ export async function uploadAvatar({
         description: `${handle}'s profile`,
         image: imageURI,
         properties: {
-          followsURI,
+          followInfoURI: followsURI,
         },
       }
       const result = await axios({
