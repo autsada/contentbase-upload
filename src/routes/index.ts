@@ -4,6 +4,7 @@ import path from "path"
 
 import { uploadDisk } from "../middlewares/multer"
 import type { Environment } from "../types"
+import { verifyIdToken } from "../middlewares/verify-token"
 
 const { NODE_ENV } = process.env
 
@@ -26,10 +27,10 @@ export const router = express.Router()
 /**
  * Upload avatar image route
  */
-router.post("/profile/avatar", uploadDisk, (req, res) => {
+router.post("/profile/avatar", verifyIdToken, uploadDisk, (req, res) => {
+  const uid = req.uid
   const file = req.file
-  const { uid, handle, oldURI } = req.body as {
-    uid: string
+  const { handle, oldURI } = req.body as {
     handle: string
     oldURI?: string
   }
@@ -59,10 +60,10 @@ router.post("/profile/avatar", uploadDisk, (req, res) => {
  * Upload video route
  * It will also generate video thumbnails
  */
-router.post("/publish/video", uploadDisk, async (req, res) => {
+router.post("/publish/video", verifyIdToken, uploadDisk, async (req, res) => {
+  const uid = req.uid
   const file = req.file
-  const { uid, handle, oldURI } = req.body as {
-    uid: string
+  const { handle, oldURI } = req.body as {
     handle: string
     oldURI?: string
   }

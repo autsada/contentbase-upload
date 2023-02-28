@@ -31,8 +31,9 @@ export async function avatarUpload({
     let filename = ""
     // The path in the temp dir to download the raw image to be processed
     let inputFilePath = ""
-    // The path in the temp dir of the final image that will be updated to cloud storage
+    // The path in the temp dir of the final image that will be uploaded to cloud storage
     let outputFilePath = ""
+    let followsURI = ""
 
     if (!file) {
       // If user doesn't provide an image, we will use the default image
@@ -99,10 +100,37 @@ export async function avatarUpload({
       })
       imageURI = urls[0]
 
+      // Create a follows json object that will hold the profile following and followers info, this object will be stored on Cloud storage and put its link to the metadata object that will be stored on ipfs
+      // When a profile's followers or following get updated, we will re-upload the updated json object to the same path in Cloud storage so we don't have to update the metadata uri
+      const followInfo = {
+        followersCount: 0,
+        followers: [],
+        followingCount: 0,
+        following: [],
+      }
+
+      // Upload the json file to cloud storage
+      const jsonDestination = path.join(
+        uid,
+        handle.toLowerCase(),
+        "follows.json"
+      )
+      const jsonFile = bucket.file(jsonDestination)
+      await jsonFile.save(JSON.stringify(followInfo))
+      const jsonUrls = await jsonFile.getSignedUrl({
+        action: "read",
+        expires: Date.now() + 1000 * 60 * 60 * 24 * 365 * 1000,
+      })
+      followsURI = jsonUrls[0]
+
       // Upload metadata to ipfs
       const metadata = {
-        name: `@${handle}'s profile`,
+        name: handle.toLowerCase(),
+        description: `${handle}'s profile`,
         image: imageURI,
+        properties: {
+          followsURI,
+        },
       }
       const result = await axios({
         method: "POST",
@@ -137,13 +165,14 @@ export async function avatarUpload({
       imageURI = urls[0]
     }
 
+    // Unlink temp files
     const unlink = promisify(fs.unlink)
     await unlink(inputFilePath)
     if (inputFilePath !== outputFilePath) {
       await unlink(outputFilePath)
     }
 
-    return { imageURI, metadataURI }
+    return { imageURI, metadataURI, followsURI }
   } catch (error) {
     throw error
   }
