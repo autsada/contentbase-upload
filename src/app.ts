@@ -1,6 +1,8 @@
 import path from "path"
 import dotenv from "dotenv"
 dotenv.config({ path: path.join(__dirname, "../.env") })
+import util from "util"
+util.inspect.defaultOptions.depth = null
 import express from "express"
 import cors from "cors"
 import http from "http"

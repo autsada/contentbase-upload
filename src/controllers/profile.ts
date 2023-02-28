@@ -6,21 +6,17 @@ import axios from "axios"
 
 import { bucket } from "../firebase/config"
 import { osTempDir } from "../middlewares/multer"
-import type { UploadType } from "../types"
+import type { UploadArgs, UploadType } from "../types"
 
-const { FIREBASE_STORAGE_BUCKET, NFT_STORAGE_BASE_URL, NFT_STORAGE_API_KEY } =
-  process.env
+const {
+  FIREBASE_STORAGE_BUCKET,
+  NFT_STORAGE_BASE_URL,
+  NFT_STORAGE_API_KEY,
+  FOLLOWS_METADATA_FILE_NAME,
+} = process.env
 const DEFAULT_AVATAR_FILE_PATH = "contentbase/avatar.png"
 
-export type UploadArgs = {
-  uid: string
-  file?: Express.Multer.File
-  handle: string
-  uploadType: UploadType
-  oldURI?: string
-}
-
-export async function avatarUpload({
+export async function uploadAvatar({
   uid,
   file,
   handle,
@@ -103,9 +99,7 @@ export async function avatarUpload({
       // Create a follows json object that will hold the profile following and followers info, this object will be stored on Cloud storage and put its link to the metadata object that will be stored on ipfs
       // When a profile's followers or following get updated, we will re-upload the updated json object to the same path in Cloud storage so we don't have to update the metadata uri
       const followInfo = {
-        followersCount: 0,
         followers: [],
-        followingCount: 0,
         following: [],
       }
 
@@ -113,7 +107,7 @@ export async function avatarUpload({
       const jsonDestination = path.join(
         uid,
         handle.toLowerCase(),
-        "follows.json"
+        FOLLOWS_METADATA_FILE_NAME || "follows.json"
       )
       const jsonFile = bucket.file(jsonDestination)
       await jsonFile.save(JSON.stringify(followInfo))

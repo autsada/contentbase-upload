@@ -4,7 +4,7 @@ import axios from "axios"
 
 import { bucket } from "../firebase/config"
 import { generateThumbnails } from "../utils"
-import type { UploadArgs } from "./profile"
+import type { UploadArgs } from "../types"
 
 const { NFT_STORAGE_BASE_URL, NFT_STORAGE_API_KEY } = process.env
 
