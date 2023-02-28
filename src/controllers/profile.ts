@@ -6,7 +6,7 @@ import axios from "axios"
 
 import { bucket } from "../firebase/config"
 import { osTempDir } from "../middlewares/multer"
-import type { UploadArgs, UploadType } from "../types"
+import type { UploadArgs } from "../types"
 
 const {
   FIREBASE_STORAGE_BUCKET,
