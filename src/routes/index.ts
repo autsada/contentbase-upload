@@ -3,7 +3,12 @@ import workerpool from "workerpool"
 import path from "path"
 
 import { uploadDisk } from "../middlewares/multer"
-import type { Environment, FollowsMetadataArgs } from "../types"
+import type {
+  Environment,
+  FollowsMetadataArgs,
+  GetPublishMetadataArgs,
+  UploadPublishArgs,
+} from "../types"
 import { verifyIdToken } from "../middlewares/verify-token"
 
 const { NODE_ENV } = process.env
@@ -25,7 +30,7 @@ const pool = workerpool.pool(
 export const router = express.Router()
 
 /**
- * Upload avatar image route
+ * A route to upload avatar image
  */
 router.post("/profile/avatar", verifyIdToken, uploadDisk, (req, res) => {
   const uid = req.uid
@@ -57,7 +62,7 @@ router.post("/profile/avatar", verifyIdToken, uploadDisk, (req, res) => {
 })
 
 /**
- * Upload follows metadata route
+ * Create follows metadata route
  */
 router.post("/metadata/follows", verifyIdToken, (req, res) => {
   const uid = req.uid
@@ -90,24 +95,56 @@ router.post("/metadata/follows", verifyIdToken, (req, res) => {
 })
 
 /**
- * Upload video route
- * It will also generate video thumbnails
+ * Create publish metadata route
  */
-router.post("/publish/video", verifyIdToken, uploadDisk, async (req, res) => {
+router.post("/metadata/publish", verifyIdToken, (req, res) => {
   const uid = req.uid
-  const file = req.file
-  const { handle, oldURI } = req.body as {
-    handle: string
-    oldURI?: string
-  }
+  const body = req.body as Omit<GetPublishMetadataArgs, "uid" | "uploadType">
+  const { handle, filename } = body
 
-  if (!uid || !file || !handle) {
+  if (!uid || !handle || !filename) {
     res.status(400).json({ error: "Bad request" })
   } else {
     pool
       .proxy()
       .then(function (worker) {
-        return worker.uploadVideo({ uid, handle, file, oldURI })
+        return worker.getPublishMetadata({
+          uid,
+          filename,
+          handle,
+        })
+      })
+      .then(function (result) {
+        res.status(200).json(result)
+      })
+      .catch(function (err) {
+        res
+          .status(err.status || 500)
+          .send(err.message || "Something went wrong")
+      })
+      .then(function () {
+        pool.terminate() // terminate all workers when done
+      })
+  }
+})
+
+/**
+ * A route to upload a video
+ * It will also generate video thumbnails
+ * TODO: Implement pubsub to broadcast for error case in order for the `Public` API Service to update the publish
+ */
+router.post("/publish/video", verifyIdToken, uploadDisk, async (req, res) => {
+  const uid = req.uid
+  const file = req.file
+  const { contentPath } = req.body as Omit<UploadPublishArgs, "file">
+
+  if (!uid || !file || !contentPath) {
+    res.status(400).json({ error: "Bad request" })
+  } else {
+    pool
+      .proxy()
+      .then(function (worker) {
+        return worker.uploadVideo({ file, contentPath })
       })
       .then(function (result) {
         res.status(200).json(result)

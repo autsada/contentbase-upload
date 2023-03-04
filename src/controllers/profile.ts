@@ -6,7 +6,7 @@ import axios from "axios"
 
 import { bucket } from "../firebase/config"
 import { osTempDir } from "../middlewares/multer"
-import type { UploadArgs } from "../types"
+import type { UploadAvatarArgs } from "../types"
 
 const {
   FIREBASE_STORAGE_BUCKET,
@@ -22,7 +22,7 @@ export async function uploadAvatar({
   handle,
   uploadType = "avatar",
   oldURI,
-}: UploadArgs) {
+}: UploadAvatarArgs) {
   try {
     let filename = ""
     // The path in the temp dir to download the raw image to be processed

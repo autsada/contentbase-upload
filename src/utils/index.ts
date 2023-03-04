@@ -94,6 +94,7 @@ export async function generateThumbnails(
   )
 
   const unlink = promisify(fs.unlink)
+  // Unlink the original input file
   await unlink(inputFilePath)
   // Unlink the generated images
   await Promise.all(generatedOutputPaths.map((p) => unlink(p)))
