@@ -1,21 +1,16 @@
 export type Environment = "production" | "development" | "staging"
 export type UploadType = "avatar" | "publish"
-export type UploadAvatarArgs = {
+export type UploadFileArgs = {
   uid: string
   file?: Express.Multer.File
   handle: string
   uploadType: UploadType
+}
+export type UploadAvatarArgs = UploadFileArgs & {
   oldURI?: string
 }
-export type GetPublishMetadataArgs = {
-  uid: string
-  filename: string
-  handle: string
-  uploadType: UploadType
-}
-export type UploadPublishArgs = {
-  file: Express.Multer.File
-  contentPath: string
+export type UploadPublishArgs = UploadFileArgs & {
+  publishId: string
 }
 export type FollowsMetadataArgs = {
   follower: {

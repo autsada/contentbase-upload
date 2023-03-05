@@ -17,7 +17,8 @@ export async function verifyIdToken(
     const idToken = authorization?.split(" ")[1]
 
     // The token for use to authenticate between services in GCP
-    const token = env !== "development" ? await authClient.getIdToken() : ""
+    const token =
+      env !== "development" ? await authClient.getIdToken(KMS_BASE_URL!) : ""
     // Call the `KMS` service to verify id token
     const result = await axios({
       method: "GET",

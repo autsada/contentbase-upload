@@ -6,7 +6,6 @@ import { uploadDisk } from "../middlewares/multer"
 import type {
   Environment,
   FollowsMetadataArgs,
-  GetPublishMetadataArgs,
   UploadPublishArgs,
 } from "../types"
 import { verifyIdToken } from "../middlewares/verify-token"
@@ -94,57 +93,21 @@ router.post("/metadata/follows", verifyIdToken, (req, res) => {
   }
 })
 
-/**
- * Create publish metadata route
- */
-router.post("/metadata/publish", verifyIdToken, (req, res) => {
-  const uid = req.uid
-  const body = req.body as Omit<GetPublishMetadataArgs, "uid" | "uploadType">
-  const { handle, filename } = body
-
-  if (!uid || !handle || !filename) {
-    res.status(400).json({ error: "Bad request" })
-  } else {
-    pool
-      .proxy()
-      .then(function (worker) {
-        return worker.getPublishMetadata({
-          uid,
-          filename,
-          handle,
-        })
-      })
-      .then(function (result) {
-        res.status(200).json(result)
-      })
-      .catch(function (err) {
-        res
-          .status(err.status || 500)
-          .send(err.message || "Something went wrong")
-      })
-      .then(function () {
-        pool.terminate() // terminate all workers when done
-      })
-  }
-})
-
-/**
- * A route to upload a video
- * It will also generate video thumbnails
- * TODO: Implement pubsub to broadcast for error case in order for the `Public` API Service to update the publish
- */
 router.post("/publish/video", verifyIdToken, uploadDisk, async (req, res) => {
   const uid = req.uid
   const file = req.file
-  const { contentPath } = req.body as Omit<UploadPublishArgs, "file">
+  const { handle, publishId } = req.body as Omit<
+    UploadPublishArgs,
+    "uid" | "file" | "uploadType"
+  >
 
-  if (!uid || !file || !contentPath) {
+  if (!uid || !file || !handle || !publishId) {
     res.status(400).json({ error: "Bad request" })
   } else {
     pool
       .proxy()
       .then(function (worker) {
-        return worker.uploadVideo({ file, contentPath })
+        return worker.uploadVideo({ uid, handle, file, publishId })
       })
       .then(function (result) {
         res.status(200).json(result)
