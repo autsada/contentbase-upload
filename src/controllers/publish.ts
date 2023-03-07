@@ -1,5 +1,7 @@
 import path from "path"
 import axios from "axios"
+import { promisify } from "util"
+import fs from "fs"
 
 import { bucket } from "../firebase/config"
 import { authClient } from "../utils/authClient"
@@ -28,7 +30,10 @@ export async function uploadVideo({
       throw { status: 400, message: "Bad request" }
     }
     // Only process video file
-    if (!file.mimetype.startsWith("video/")) {
+    if (
+      !file.mimetype.startsWith("video/") &&
+      !file.mimetype.startsWith("application/octet-stream")
+    ) {
       throw { status: 400, message: "Wrong file type" }
     }
 
@@ -39,7 +44,8 @@ export async function uploadVideo({
         ? await authClient.getIdToken(PUBLIC_APIS_BASE_URL!)
         : ""
 
-    await axios({
+    // Call (without waiting) the `Public API` service to update the publish in database
+    axios({
       method: "PATCH",
       url: `${PUBLIC_APIS_BASE_URL}/api/publish/draft/${publishId}`,
       headers: {
@@ -127,8 +133,8 @@ export async function uploadVideo({
     })
     const metadataURI = uploadMetadataResult?.data.value?.cid
 
-    // Call the `Public API` service to update the publish in database
-    await axios({
+    // Call (without waiting) the `Public API` service to update the publish in database
+    axios({
       method: "PATCH",
       url: `${PUBLIC_APIS_BASE_URL}/api/publish/draft/${publishId}`,
       headers: {
@@ -138,8 +144,13 @@ export async function uploadVideo({
       data: {
         publishURI,
         metadataURI,
+        kind: "Video",
       },
     })
+
+    // Unlink temp files
+    const unlink = promisify(fs.unlink)
+    await unlink(inputFilePath)
 
     return { status: "Ok" }
   } catch (error) {
