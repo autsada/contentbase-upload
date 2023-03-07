@@ -1,12 +1,15 @@
 import path from "path"
+import fs from "fs"
+import { promisify } from "util"
 
 import { bucket } from "../firebase/config"
-import type { FollowsMetadataArgs } from "../types"
+import { osTempDir } from "../middlewares/multer"
+import type { FollowsMetadataArgs, PublishMetadataArgs } from "../types"
 
-const { FOLLOWS_METADATA_FILE_NAME } = process.env
+const { FOLLOWS_METADATA_FILE_NAME, VIDEO_INFO_FILE_NAME } = process.env
 
 /**
- * Get follows metadata
+ * Upload follows metadata
  */
 export async function uploadFollowsMetadata({
   follower,
@@ -48,6 +51,52 @@ export async function uploadFollowsMetadata({
     // Followee: Upload the new metadata object
     const followeeJsonFile = bucket.file(followeeDestination)
     await followeeJsonFile.save(JSON.stringify(followeeMetadata))
+
+    return { status: "Ok" }
+  } catch (error) {
+    throw error
+  }
+}
+
+/**
+ * Upload publish metadata
+ */
+export async function uploadPublishMetadata({
+  uid,
+  handle,
+  publishId,
+  info,
+}: PublishMetadataArgs) {
+  try {
+    // Construct Cloud storage path
+    const storageFilePath = path.join(
+      uid,
+      handle.toLowerCase(),
+      "publish",
+      `${publishId}`,
+      VIDEO_INFO_FILE_NAME!
+    )
+
+    // Download the file from Cloud storage to local temp dir
+    const localFilePath = path.join(
+      osTempDir,
+      `${publishId}-${VIDEO_INFO_FILE_NAME!}-${Date.now()}`
+    )
+    const oldFile = bucket.file(storageFilePath)
+    await oldFile.download({ destination: localFilePath })
+
+    // Read the old file
+    const readFile = promisify(fs.readFile)
+    const oldInfoString = await readFile(localFilePath, { encoding: "utf-8" })
+    const oldInfo = JSON.parse(oldInfoString)
+
+    // Upload the new info to Cloud storage
+    const newInfo = { ...oldInfo, ...info }
+    await oldFile.save(JSON.stringify(newInfo))
+
+    // Unlink temp file
+    const unlink = promisify(fs.unlink)
+    await unlink(localFilePath)
 
     return { status: "Ok" }
   } catch (error) {

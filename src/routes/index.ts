@@ -6,6 +6,7 @@ import { uploadDisk } from "../middlewares/multer"
 import type {
   Environment,
   FollowsMetadataArgs,
+  PublishMetadataArgs,
   UploadPublishArgs,
 } from "../types"
 import { verifyIdToken } from "../middlewares/verify-token"
@@ -77,6 +78,41 @@ router.post("/metadata/follows", verifyIdToken, (req, res) => {
         return worker.uploadFollowsMetadata({
           follower,
           followee,
+        })
+      })
+      .then(function (result) {
+        res.status(200).json(result)
+      })
+      .catch(function (err) {
+        res
+          .status(err.status || 500)
+          .send(err.message || "Something went wrong")
+      })
+      .then(function () {
+        pool.terminate() // terminate all workers when done
+      })
+  }
+})
+
+/**
+ * Update publish metadata route
+ */
+router.post("/metadata/publish", verifyIdToken, (req, res) => {
+  const uid = req.uid
+  const body = req.body as Omit<PublishMetadataArgs, "uid">
+  const { handle, publishId, info } = body
+
+  if (!handle || !publishId) {
+    res.status(400).json({ error: "Bad request" })
+  } else {
+    pool
+      .proxy()
+      .then(function (worker) {
+        return worker.uploadPublishMetadata({
+          uid,
+          handle,
+          publishId,
+          info,
         })
       })
       .then(function (result) {

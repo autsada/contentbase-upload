@@ -88,16 +88,16 @@ export async function uploadVideo({
     // Upload video info json object template to Cloud storage
     const videoInfo = {
       details: {
+        creator: handle.toLowerCase(),
         title: "",
         description: "",
-        creatorId: "",
         primaryCategory: "",
         secondaryCategory: "",
         tertiaryCategory: "",
-        kind: "",
+        kind: "Video",
       },
-      likes: [],
-      dislikes: [],
+      likes: [], // Array of profile token id
+      dislikes: 0, // Number of dislikes
       comments: [],
       tips: [],
     }

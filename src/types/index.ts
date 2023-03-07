@@ -26,3 +26,22 @@ export type FollowsMetadataArgs = {
     following: { tokenId: string; handle: string }[]
   }
 }
+
+export type PublishMetadataArgs = {
+  uid: string
+  handle: string
+  publishId: string // Use string instead of number as we will use it as string
+  info: {
+    details?: {
+      title?: String
+      description?: String
+      primaryCategory?: String
+      secondaryCategory?: String
+      tertiaryCategory?: String
+    }
+    likes?: (string | undefined)[] // Array of profile token id
+    dislikes?: number // dislikes count
+    comments?: ({ profileId: string; text: string } | undefined)[] // Array of comments
+    tips?: ({ profileId: string; amount: string } | undefined)[] // Array of tips
+  }
+}
