@@ -129,6 +129,9 @@ router.post("/metadata/publish", verifyIdToken, (req, res) => {
   }
 })
 
+/**
+ * Upload video file
+ */
 router.post("/publish/video", verifyIdToken, uploadDisk, async (req, res) => {
   const uid = req.uid
   const file = req.file
@@ -158,3 +161,47 @@ router.post("/publish/video", verifyIdToken, uploadDisk, async (req, res) => {
       })
   }
 })
+
+/**
+ * Upload thumbnail image
+ */
+router.post(
+  "/publish/thumbnail",
+  verifyIdToken,
+  uploadDisk,
+  async (req, res) => {
+    const uid = req.uid
+    const file = req.file
+    const { handle, publishId, thumbSource } = req.body as Omit<
+      UploadPublishArgs,
+      "uid" | "file" | "uploadType"
+    > & { thumbSource: "generated" | "custom" }
+
+    if (!uid || !file || !handle || !publishId) {
+      res.status(400).json({ error: "Bad request" })
+    } else {
+      pool
+        .proxy()
+        .then(function (worker) {
+          return worker.uploadThumbnail({
+            uid,
+            handle,
+            file,
+            publishId,
+            thumbSource,
+          })
+        })
+        .then(function (result) {
+          res.status(200).json(result)
+        })
+        .catch(function (err) {
+          res
+            .status(err.status || 500)
+            .send(err.message || "Something went wrong")
+        })
+        .then(function () {
+          pool.terminate() // terminate all workers when done
+        })
+    }
+  }
+)

@@ -5,7 +5,7 @@ import {
   uploadFollowsMetadata,
   uploadPublishMetadata,
 } from "../controllers/metadata"
-import { uploadVideo } from "../controllers/publish"
+import { uploadVideo, uploadThumbnail } from "../controllers/publish"
 
 // create a worker and register public functions
 workerpool.worker({
@@ -13,4 +13,5 @@ workerpool.worker({
   uploadFollowsMetadata,
   uploadVideo,
   uploadPublishMetadata,
+  uploadThumbnail,
 })

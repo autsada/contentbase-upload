@@ -157,3 +157,77 @@ export async function uploadVideo({
     throw error
   }
 }
+
+export async function uploadThumbnail({
+  uid,
+  file,
+  handle,
+  uploadType = "publish",
+  publishId,
+}: UploadPublishArgs) {
+  // `thumbSource` is a string to tell if user want to set a generated thumbnail or a custom thumbnail in their publish.
+  try {
+    if (!file) {
+      throw { status: 400, message: "Bad request" }
+    }
+
+    // Only process image file
+    if (!file.mimetype.startsWith("image/")) {
+      throw { status: 400, message: "Wrong file type" }
+    }
+
+    // const filename = file.filename
+    const inputFilePath = file.path
+
+    const destinationPath = path.join(
+      uid,
+      handle.toLowerCase(),
+      uploadType,
+      publishId,
+      `thumbnail.png`
+    )
+
+    // Upload the image to cloud storage
+    await bucket.upload(inputFilePath, {
+      destination: destinationPath,
+      resumable: true,
+    })
+
+    const uploadedFile = bucket.file(destinationPath)
+    const urls = await uploadedFile.getSignedUrl({
+      action: "read",
+      expires: Date.now() + 1000 * 60 * 60 * 24 * 365 * 1000,
+    })
+    const thumbnail = urls[0]
+
+    // Unlink temp files
+    const unlink = promisify(fs.unlink)
+    await unlink(inputFilePath)
+
+    // If user uses their custom thumbnail, we also need to update the publish in database
+    if (thumbnail) {
+      // Update the publish in database
+      // The token for use to authenticate between services in GCP
+      const token =
+        env !== "development"
+          ? await authClient.getIdToken(PUBLIC_APIS_BASE_URL!)
+          : ""
+      // Call the `Public API` service to update the publish in database
+      await axios({
+        method: "PATCH",
+        url: `${PUBLIC_APIS_BASE_URL}/api/publish/draft/${publishId}`,
+        headers: {
+          Authorization: token,
+          "api-access-token": API_ACCESS_TOKEN || "",
+        },
+        data: {
+          thumbnail,
+        },
+      })
+    }
+
+    return { thumbnail }
+  } catch (error) {
+    throw error
+  }
+}
