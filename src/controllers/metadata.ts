@@ -91,7 +91,10 @@ export async function uploadPublishMetadata({
     const oldInfo = JSON.parse(oldInfoString)
 
     // Upload the new info to Cloud storage
-    const newInfo = { ...oldInfo, ...info }
+    const newInfo = {
+      ...oldInfo,
+      details: { ...oldInfo.details, ...info.details },
+    }
     await oldFile.save(JSON.stringify(newInfo))
 
     // Unlink temp file
