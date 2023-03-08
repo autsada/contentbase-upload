@@ -93,7 +93,6 @@ export async function uploadVideo({
         description: "",
         primaryCategory: "",
         secondaryCategory: "",
-        tertiaryCategory: "",
         kind: "Video",
       },
       likes: [], // Array of profile token id
