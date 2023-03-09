@@ -47,7 +47,7 @@ export async function uploadVideo({
     // Call (without waiting) the `Public API` service to update the publish in database
     axios({
       method: "PATCH",
-      url: `${PUBLIC_APIS_BASE_URL}/api/publish/draft/${publishId}`,
+      url: `${PUBLIC_APIS_BASE_URL}/api/publish/${publishId}`,
       headers: {
         Authorization: token,
         "api-access-token": API_ACCESS_TOKEN || "",
@@ -135,7 +135,7 @@ export async function uploadVideo({
     // Call (without waiting) the `Public API` service to update the publish in database
     axios({
       method: "PATCH",
-      url: `${PUBLIC_APIS_BASE_URL}/api/publish/draft/${publishId}`,
+      url: `${PUBLIC_APIS_BASE_URL}/api/publish/${publishId}`,
       headers: {
         Authorization: token,
         "api-access-token": API_ACCESS_TOKEN || "",
@@ -214,7 +214,7 @@ export async function uploadThumbnail({
       // Call the `Public API` service to update the publish in database
       await axios({
         method: "PATCH",
-        url: `${PUBLIC_APIS_BASE_URL}/api/publish/draft/${publishId}`,
+        url: `${PUBLIC_APIS_BASE_URL}/api/publish/${publishId}`,
         headers: {
           Authorization: token,
           "api-access-token": API_ACCESS_TOKEN || "",
